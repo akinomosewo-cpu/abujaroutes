@@ -20,6 +20,12 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // Transit-mode accent colors used throughout route lists/badges.
+  static const Color korope = Color(0xFF5E5CE6);
+  static const Color keke = Color(0xFFFFD60A);
+  static const Color bus = Color(0xFF30D158);
+  static const Color lightRail = Color(0xFF64D2FF);
 }
 
 class AppTextStyles {
@@ -60,7 +66,7 @@ class AppTheme {
       titleTextStyle: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary),
       iconTheme: const IconThemeData(color: AppColors.textPrimary),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

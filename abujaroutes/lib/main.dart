@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
-import 'presentation/blocs/app_bloc.dart';
+import 'presentation/blocs/route_bloc.dart';
 import 'presentation/pages/home_page.dart';
 
 void main() async {
@@ -21,7 +21,7 @@ class AbujaRoutesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AppBloc()..add(const AppStarted()),
+      create: (_) => RouteBloc()..add(const RoutesStarted()),
       child: MaterialApp(
         title: 'Abuja Routes',
         debugShowCheckedModeBanner: false,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/services/display_name_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/models/transit_route.dart';
 import '../blocs/route_bloc.dart';
@@ -35,8 +37,16 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Optional, one-time, skippable display-name capture so a submission
+    // can carry local attribution. This never blocks submitting or
+    // browsing routes: dismissing it just submits anonymously.
+    await DisplayNameService.init();
+    if (!DisplayNameService.hasDisplayName && mounted) {
+      await _promptForDisplayName();
+    }
 
     final fareMin = double.tryParse(_fareMinCtrl.text.trim()) ?? 0;
     final fareMax = double.tryParse(_fareMaxCtrl.text.trim());
@@ -56,14 +66,12 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
       stops: stops,
       status: RouteStatus.pending,
       notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      submittedBy: DisplayNameService.getDisplayName(),
       submittedAt: DateTime.now(),
     );
 
+    if (!mounted) return;
     context.read<RouteBloc>().add(RouteSubmitted(route));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thanks! Your route was added and marked unverified.')),
-    );
 
     _formKey.currentState!.reset();
     _originCtrl.clear();
@@ -72,6 +80,68 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
     _fareMinCtrl.clear();
     _fareMaxCtrl.clear();
     _notesCtrl.clear();
+
+    if (!mounted) return;
+    await _showSubmissionSuccess();
+  }
+
+  Future<void> _promptForDisplayName() async {
+    final ctrl = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Add your name? (optional)', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Riders can see who contributed a route. No account or password needed — you can skip this and submit anonymously.',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            ),
+            const Gap(16),
+            TextField(
+              key: const Key('displayNameField'),
+              controller: ctrl,
+              autofocus: true,
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+              decoration: const InputDecoration(hintText: 'e.g. Chidi O.'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            key: const Key('displayNameSkip'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Skip'),
+          ),
+          ElevatedButton(
+            key: const Key('displayNameSave'),
+            onPressed: () => Navigator.of(dialogContext).pop(ctrl.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (name != null && name.isNotEmpty) {
+      await DisplayNameService.setDisplayName(name);
+    }
+  }
+
+  Future<void> _showSubmissionSuccess() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Thanks! Your route was added and marked unverified.')),
+    );
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black26,
+      builder: (dialogContext) => const _SubmissionSuccessDialog(),
+    );
   }
 
   @override
@@ -201,6 +271,69 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
               child: const Text('Submit route'),
             ),
             const Gap(20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A short, non-blocking checkmark scale-in shown after a route
+/// submission succeeds. Auto-dismisses so it never traps the user.
+class _SubmissionSuccessDialog extends StatefulWidget {
+  const _SubmissionSuccessDialog();
+
+  @override
+  State<_SubmissionSuccessDialog> createState() => _SubmissionSuccessDialogState();
+}
+
+class _SubmissionSuccessDialogState extends State<_SubmissionSuccessDialog> with SingleTickerProviderStateMixin {
+  late final AnimationController _autoDismiss;
+
+  @override
+  void initState() {
+    super.initState();
+    // Driven by a ticker (not a bare Future.delayed) so tests using
+    // pumpAndSettle correctly wait for the auto-dismiss to finish.
+    _autoDismiss = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          Navigator.of(context).maybePop();
+        }
+      })
+      ..forward();
+  }
+
+  @override
+  void dispose() {
+    _autoDismiss.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
+              child: const Icon(Icons.check_rounded, color: Colors.white, size: 40),
+            )
+                .animate()
+                .scale(begin: const Offset(0.3, 0.3), end: const Offset(1, 1), duration: 300.ms, curve: Curves.elasticOut)
+                .fadeIn(duration: 150.ms),
+            const Gap(16),
+            Text(
+              'Route submitted!',
+              style: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary),
+            ).animate(delay: 150.ms).fadeIn(duration: 200.ms),
           ],
         ),
       ),

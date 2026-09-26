@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/auth/auth_repository.dart';
+import '../../core/navigation/page_transitions.dart';
 import '../../core/theme/app_theme.dart';
 import '../blocs/route_bloc.dart';
 import 'light_rail_page.dart';
+import 'login_page.dart';
 import 'route_list_page.dart';
 import 'submit_route_page.dart';
 
@@ -28,11 +31,41 @@ class _HomePageState extends State<HomePage> {
     context.read<RouteBloc>().add(const RoutesStarted());
   }
 
+  Future<void> _logOut() async {
+    await AuthRepository.instance.logOut();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      FadeSlidePageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: IndexedStack(index: _index, children: _pages),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    key: const Key('logoutButton'),
+                    tooltip: 'Log out',
+                    onPressed: _logOut,
+                    icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: IndexedStack(index: _index, children: _pages)),
+          ],
+        ),
+      ),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.surface,

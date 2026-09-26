@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 
+import '../../core/navigation/page_transitions.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/models/transit_route.dart';
 import '../blocs/route_bloc.dart';
@@ -178,7 +179,7 @@ class _RouteCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => RouteDetailPage(route: route)),
+        FadeSlidePageRoute(builder: (_) => RouteDetailPage(route: route)),
       ),
       child: Container(
         padding: const EdgeInsets.all(16),

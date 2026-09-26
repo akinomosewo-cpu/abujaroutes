@@ -1,20 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:gap/gap.dart';
+
+import '../../core/auth/auth_repository.dart';
+import '../../core/navigation/page_transitions.dart';
 import '../../core/theme/app_theme.dart';
-import '../blocs/app_bloc.dart';
+import '../blocs/route_bloc.dart';
+import 'light_rail_page.dart';
+import 'login_page.dart';
+import 'route_list_page.dart';
+import 'submit_route_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-  @override State<HomePage> createState() => _HomePageState();
+  @override
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  int _index = 0;
+
+  static const _pages = [
+    RouteListPage(),
+    LightRailPage(),
+    SubmitRoutePage(),
+  ];
+
   @override
   void initState() {
     super.initState();
-    context.read<AppBloc>().add(const AppStarted());
+    context.read<RouteBloc>().add(const RoutesStarted());
+  }
+
+  Future<void> _logOut() async {
+    await AuthRepository.instance.logOut();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      FadeSlidePageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 
   @override
@@ -22,198 +45,44 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            return CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  floating: true, snap: true,
-                  backgroundColor: AppColors.background,
-                  title: Row(children: [
-                    Container(
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 17),
-                    ),
-                    const Gap(10),
-                    Text('Abuja Routes', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary)),
-                  ]),
-                  actions: [
-                    IconButton(icon: const Icon(Icons.add_rounded, color: AppColors.primary), onPressed: () => _showAddSheet(context)),
-                    const Gap(4),
-                  ],
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(delegate: SliverChildListDelegate([
-                    const Gap(8),
-                    Row(children: [
-                      _StatCard(label: 'Routes', value: state is AppLoaded ? state.items.length.toString() : '0', color: AppColors.primary).animate(delay: 50.ms).fadeIn().slideY(begin: 0.1),
-                      const Gap(12),
-                      _StatCard(label: 'Stops', value: state is AppLoaded ? state.items.where((i) => i['status'] == 'active').length.toString() : '0', color: AppColors.success).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1),
-                      const Gap(12),
-                      _StatCard(label: 'Reports', value: state is AppLoaded ? state.items.where((i) => i['status'] == 'pending').length.toString() : '0', color: AppColors.warning).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1),
-                    ]),
-                    const Gap(24),
-                    Text('What you can do', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
-                    const Gap(12),
-                    _FeatureCard(icon: Icons.check_circle_outline_rounded, label: 'Find bus & korope routes', color: AppColors.primary).animate(delay: 200.ms).fadeIn().slideX(begin: -0.1),
-                    const Gap(8),
-                    _FeatureCard(icon: Icons.bar_chart_rounded, label: 'Check keke fares', color: AppColors.success).animate(delay: 250.ms).fadeIn().slideX(begin: -0.1),
-                    const Gap(8),
-                    _FeatureCard(icon: Icons.send_rounded, label: 'Add a route you know', color: AppColors.warning).animate(delay: 300.ms).fadeIn().slideX(begin: -0.1),
-                    const Gap(24),
-                    Text('Recent Activity', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
-                    const Gap(12),
-                    if (state is AppLoaded && state.items.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.border)),
-                        child: Column(children: [
-                          Icon(Icons.directions_bus_rounded, color: AppColors.textTertiary, size: 40),
-                          const Gap(12),
-                          Text('Nothing here yet', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                          const Gap(4),
-                          Text('Tap + to get started', style: AppTextStyles.labelMedium.copyWith(color: AppColors.textTertiary)),
-                        ]),
-                      ).animate().fadeIn(delay: 350.ms),
-                    if (state is AppLoaded)
-                      ...state.items.asMap().entries.map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _ItemTile(
-                          title: e.value['title'] ?? 'Item',
-                          subtitle: e.value['subtitle'] ?? '',
-                          status: e.value['status'] ?? 'active',
-                          onDelete: () => context.read<AppBloc>().add(ItemDeleted(e.value['id'] ?? '')),
-                        ).animate(delay: Duration(milliseconds: 50 * e.key)).fadeIn(),
-                      )),
-                    const Gap(32),
-                  ])),
-                ),
-              ],
-            );
-          },
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    key: const Key('logoutButton'),
+                    tooltip: 'Log out',
+                    onPressed: _logOut,
+                    icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: IndexedStack(index: _index, children: _pages)),
+          ],
         ),
       ),
-    );
-  }
-
-  void _showAddSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => BlocProvider.value(value: context.read<AppBloc>(), child: const _AddSheet()),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label, value;
-  final Color color;
-  const _StatCard({required this.label, required this.value, required this.color});
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
-      child: Column(children: [
-        Text(value, style: AppTextStyles.displaySmall.copyWith(color: color, fontWeight: FontWeight.w800)),
-        const Gap(2),
-        Text(label, style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.center),
-      ]),
-    ),
-  );
-}
-
-class _FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  const _FeatureCard({required this.icon, required this.label, required this.color});
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
-    child: Row(children: [
-      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: color, size: 16)),
-      const Gap(14),
-      Expanded(child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary))),
-      const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 18),
-    ]),
-  );
-}
-
-class _ItemTile extends StatelessWidget {
-  final String title, subtitle, status;
-  final VoidCallback onDelete;
-  const _ItemTile({required this.title, required this.subtitle, required this.status, required this.onDelete});
-  @override
-  Widget build(BuildContext context) {
-    final statusColor = status == 'active' ? AppColors.success : status == 'pending' ? AppColors.warning : AppColors.textSecondary;
-    return Dismissible(
-      key: Key(title + DateTime.now().toString()),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(color: AppColors.danger.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-        child: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
-      ),
-      onDismissed: (_) => onDelete(),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
-        child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
-            if (subtitle.isNotEmpty) Text(subtitle, style: AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary)),
-          ])),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: statusColor.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
-            child: Text(status, style: AppTextStyles.labelSmall.copyWith(color: statusColor, fontWeight: FontWeight.w700)),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-class _AddSheet extends StatefulWidget {
-  const _AddSheet();
-  @override State<_AddSheet> createState() => _AddSheetState();
-}
-
-class _AddSheetState extends State<_AddSheet> {
-  final _titleCtrl = TextEditingController();
-  final _subtitleCtrl = TextEditingController();
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Add New', style: AppTextStyles.headlineLarge.copyWith(color: AppColors.textPrimary)),
-        const Gap(20),
-        TextField(controller: _titleCtrl, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary), decoration: const InputDecoration(hintText: 'Title / Name')),
-        const Gap(12),
-        TextField(controller: _subtitleCtrl, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary), decoration: const InputDecoration(hintText: 'Details')),
-        const Gap(20),
-        ElevatedButton(
-          onPressed: () {
-            if (_titleCtrl.text.isEmpty) return;
-            context.read<AppBloc>().add(ItemAdded({
-              'id': DateTime.now().millisecondsSinceEpoch.toString(),
-              'title': _titleCtrl.text,
-              'subtitle': _subtitleCtrl.text,
-              'status': 'active',
-            }));
-            Navigator.pop(context);
-          },
-          child: const Text('Save'),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          boxShadow: AppColors.cardShadow,
         ),
-      ]),
+        child: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primary.withValues(alpha: 0.16),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.route_outlined), selectedIcon: Icon(Icons.route_rounded), label: 'Routes'),
+          NavigationDestination(icon: Icon(Icons.train_outlined), selectedIcon: Icon(Icons.train_rounded), label: 'Light Rail'),
+          NavigationDestination(icon: Icon(Icons.add_circle_outline_rounded), selectedIcon: Icon(Icons.add_circle_rounded), label: 'Submit'),
+        ],
+        ),
+      ),
     );
   }
 }

@@ -13,13 +13,13 @@ class LightRailPage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Abuja Light Rail', style: AppTextStyles.displaySmall.copyWith(color: AppColors.textPrimary)),
-          const Gap(4),
+          Text('Abuja Light Rail', style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary)),
+          const Gap(6),
           Text(
             'Reference schedule for the operating light-rail segments. Times are approximate — confirm at the station.',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
           ),
-          const Gap(20),
+          const Gap(24),
           for (final line in lightRailLines) ...[
             _LineCard(line: line),
             const Gap(16),
@@ -37,17 +37,22 @@ class _LineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24), boxShadow: AppColors.cardShadow),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.train_rounded, color: AppColors.lightRail, size: 20),
-              const Gap(10),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: AppColors.lightRail.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(14)),
+                child: const Icon(Icons.train_rounded, color: AppColors.lightRail, size: 20),
+              ),
+              const Gap(12),
               Expanded(
-                child: Text(line.name, style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
+                child: Text(line.name, style: AppTextStyles.headlineLarge.copyWith(color: AppColors.textPrimary)),
               ),
             ],
           ),
@@ -82,8 +87,8 @@ class _TimeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: AppColors.lightRail.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(color: AppColors.lightRail.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
         child: Text(time, style: AppTextStyles.labelSmall.copyWith(color: AppColors.lightRail, fontWeight: FontWeight.w700)),
       );
 }

@@ -9,8 +9,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
     systemNavigationBarColor: AppColors.background,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const AbujaRoutesApp());
@@ -27,7 +28,7 @@ class AbujaRoutesApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.dark,
+        themeMode: ThemeMode.light,
         home: const HomePage(),
       ),
     );

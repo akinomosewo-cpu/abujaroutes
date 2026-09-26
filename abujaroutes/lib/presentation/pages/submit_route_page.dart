@@ -82,11 +82,11 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Text('Add a route you know', style: AppTextStyles.displaySmall.copyWith(color: AppColors.textPrimary)),
-            const Gap(4),
+            Text('Add a route you know', style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary)),
+            const Gap(6),
             Text(
               'Help other riders by sharing a korope, keke or bus route and its fare. Submissions are marked "Unverified" until confirmed by other riders.',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
             ),
             const Gap(24),
             const _Label('Mode of transport'),
@@ -99,12 +99,14 @@ class _SubmitRoutePageState extends State<SubmitRoutePage> {
                   label: Text(mode.shortLabel),
                   selected: selected,
                   onSelected: (_) => setState(() => _mode = mode),
-                  selectedColor: AppColors.primary.withValues(alpha: 0.25),
+                  selectedColor: AppColors.primary,
                   backgroundColor: AppColors.surface,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   labelStyle: AppTextStyles.labelMedium.copyWith(
-                    color: selected ? AppColors.primary : AppColors.textSecondary,
+                    color: selected ? Colors.white : AppColors.textSecondary,
+                    fontWeight: FontWeight.w700,
                   ),
-                  side: BorderSide(color: selected ? AppColors.primary : AppColors.border),
+                  side: BorderSide(color: selected ? Colors.transparent : AppColors.border),
                 );
               }).toList(),
             ),

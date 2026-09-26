@@ -33,16 +33,22 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.18),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.16),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.route_outlined), selectedIcon: Icon(Icons.route_rounded), label: 'Routes'),
           NavigationDestination(icon: Icon(Icons.train_outlined), selectedIcon: Icon(Icons.train_rounded), label: 'Light Rail'),
           NavigationDestination(icon: Icon(Icons.add_circle_outline_rounded), selectedIcon: Icon(Icons.add_circle_rounded), label: 'Submit'),
         ],
+        ),
       ),
     );
   }

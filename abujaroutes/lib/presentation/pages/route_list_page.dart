@@ -37,11 +37,11 @@ class RouteListPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Abuja Routes', style: AppTextStyles.displaySmall.copyWith(color: AppColors.textPrimary)),
-                    const Gap(4),
+                    Text('Abuja Routes', style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary)),
+                    const Gap(6),
                     Text('Search korope, keke and bus routes crowdsourced by riders.',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-                    const Gap(16),
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+                    const Gap(20),
                     TextField(
                       key: const Key('routeSearchField'),
                       style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
@@ -115,18 +115,19 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? accent.withValues(alpha: 0.18) : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? accent : AppColors.border),
+          color: selected ? accent : AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: selected ? null : Border.all(color: AppColors.border),
+          boxShadow: selected ? [BoxShadow(color: accent.withValues(alpha: 0.28), blurRadius: 12, offset: const Offset(0, 4))] : null,
         ),
         child: Center(
           child: Text(
             label,
             style: AppTextStyles.labelMedium.copyWith(
-              color: selected ? accent : AppColors.textSecondary,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? Colors.white : AppColors.textSecondary,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -175,7 +176,7 @@ class _RouteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = modeColor(route.mode);
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(22),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => RouteDetailPage(route: route)),
       ),
@@ -183,16 +184,16 @@ class _RouteCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: AppColors.cardShadow,
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-              child: Icon(_iconFor(route.mode), color: color, size: 20),
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(16)),
+              child: Icon(_iconFor(route.mode), color: color, size: 22),
             ),
             const Gap(14),
             Expanded(
@@ -200,16 +201,21 @@ class _RouteCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(route.routeLabel, style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
-                  const Gap(2),
-                  Text('${route.mode.label} · ${route.fareLabel}',
-                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary)),
+                  const Gap(6),
+                  Row(
+                    children: [
+                      _ModePill(label: route.mode.label, color: color),
+                      const Gap(8),
+                      Text(route.fareLabel, style: AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary)),
+                    ],
+                  ),
                 ],
               ),
             ),
             if (route.status == RouteStatus.pending)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(20)),
                 child: Text('Unverified', style: AppTextStyles.labelSmall.copyWith(color: AppColors.warning, fontWeight: FontWeight.w700)),
               )
             else
@@ -232,4 +238,17 @@ class _RouteCard extends StatelessWidget {
         return Icons.train_rounded;
     }
   }
+}
+
+class _ModePill extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _ModePill({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20)),
+        child: Text(label, style: AppTextStyles.labelSmall.copyWith(color: color, fontWeight: FontWeight.w700)),
+      );
 }

@@ -19,7 +19,7 @@ class RouteDetailPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Text(route.routeLabel, style: AppTextStyles.displaySmall.copyWith(color: AppColors.textPrimary)),
+            Text(route.routeLabel, style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary)),
             const Gap(12),
             Wrap(
               spacing: 8,
@@ -42,8 +42,8 @@ class RouteDetailPage extends StatelessWidget {
               Text('Rider notes', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.textPrimary)),
               const Gap(8),
               Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: AppColors.cardShadow),
                 child: Text(route.notes!, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               ),
             ],
